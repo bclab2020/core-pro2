@@ -218,6 +218,9 @@
                 padding: 0;
                 margin: 0;
                 overflow: hidden;
+                position: fixed;
+                width: 100%;
+                height: 100%;
             }
             
             .phone-frame {
@@ -227,13 +230,29 @@
                 padding: 0;
                 margin: 0;
                 box-shadow: none;
+                position: fixed;
+                top: 0;
+                left: 0;
             }
             
             .phone-screen {
                 border-radius: 0;
+                width: 100vw;
+                height: 100vh;
             }
             
             .app-screen {
+                height: 100vh;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+            }
+            
+            /* Welcome画面のレイアウト修正 */
+            #welcome .flex-1 {
                 height: 100vh;
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
@@ -292,6 +311,20 @@
                 margin: 20px 0;
                 position: relative;
                 z-index: 10;
+                box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+            }
+            
+            /* Welcome画面専用のレイアウト調整 */
+            #welcome {
+                display: flex !important;
+                flex-direction: column !important;
+            }
+            
+            #welcome .flex-1 {
+                display: flex;
+                flex-direction: column;
+                min-height: 100vh;
+                justify-content: space-between;
             }
         }
     </style>
@@ -324,12 +357,13 @@
             
             <!-- Welcome Screen -->
             <div id="welcome" class="app-screen bg-white">
-                <div class="flex-1 flex flex-col justify-center px-8" style="padding-top: 120px;">
-                    <div class="text-center mb-12">
+                <div class="flex-1 flex flex-col px-8 py-8 min-h-screen">
+                    <!-- Header Section -->
+                    <div class="flex-shrink-0 text-center pt-16 pb-8">
                         <h1 class="text-3xl font-bold brand-color mb-6 leading-tight">
                             AthleteCore Pro
                         </h1>
-                        <div class="space-y-2 mb-8">
+                        <div class="space-y-2">
                             <p class="text-gray-600 text-lg">
                                 Advanced posture analysis for the next generation of athletes
                             </p>
@@ -339,25 +373,29 @@
                         </div>
                     </div>
                     
-                    <div class="space-y-6 mb-12">
+                    <!-- Features Section -->
+                    <div class="flex-1 flex flex-col justify-center space-y-8 py-8">
                         <div class="text-center">
-                            <div class="w-1 h-16 brand-bg mx-auto mb-4 rounded-full"></div>
-                            <p class="text-gray-600">AI-powered movement analysis</p>
+                            <div class="w-1 h-12 brand-bg mx-auto mb-3 rounded-full"></div>
+                            <p class="text-gray-600 text-sm">AI-powered movement analysis</p>
                         </div>
                         <div class="text-center">
-                            <div class="w-1 h-16 brand-bg mx-auto mb-4 rounded-full"></div>
-                            <p class="text-gray-600">Sport-specific evaluations</p>
+                            <div class="w-1 h-12 brand-bg mx-auto mb-3 rounded-full"></div>
+                            <p class="text-gray-600 text-sm">Sport-specific evaluations</p>
                         </div>
                         <div class="text-center">
-                            <div class="w-1 h-16 brand-bg mx-auto mb-4 rounded-full"></div>
-                            <p class="text-gray-600">Professional grade insights</p>
+                            <div class="w-1 h-12 brand-bg mx-auto mb-3 rounded-full"></div>
+                            <p class="text-gray-600 text-sm">Professional grade insights</p>
                         </div>
                     </div>
                     
-                    <button onclick="showRegistration()" 
-                            class="welcome-button brand-bg text-white font-medium py-4 px-8 rounded-xl text-lg w-full">
-                        Get Started
-                    </button>
+                    <!-- Button Section - Always visible -->
+                    <div class="flex-shrink-0 pb-8">
+                        <button onclick="showRegistration()" 
+                                class="welcome-button brand-bg text-white font-medium py-4 px-8 rounded-xl text-lg w-full">
+                            Get Started
+                        </button>
+                    </div>
                 </div>
             </div>
             
