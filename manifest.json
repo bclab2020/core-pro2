@@ -1,0 +1,61 @@
+{
+  "name": "AthleteCore Pro - AI姿勢分析システム",
+  "short_name": "AthleteCore Pro",
+  "description": "次世代アスリートのための高度AI姿勢分析システム",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1E3A8A",
+  "theme_color": "#1E3A8A",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "https://cdn1.genspark.ai/user-upload-image/gpt_image_generated/1d48ae2f-e2df-4a7c-a800-832043efb262_wm",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn1.genspark.ai/user-upload-image/gpt_image_generated/1d48ae2f-e2df-4a7c-a800-832043efb262_wm",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "fitness", "sports", "medical"],
+  "screenshots": [
+    {
+      "src": "https://cdn1.genspark.ai/user-upload-image/gpt_image_generated/1d48ae2f-e2df-4a7c-a800-832043efb262_wm",
+      "sizes": "375x812",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "静的姿勢分析",
+      "short_name": "静的分析",
+      "description": "静的姿勢分析を開始",
+      "url": "/#static-analysis",
+      "icons": [
+        {
+          "src": "https://cdn1.genspark.ai/user-upload-image/gpt_image_generated/1d48ae2f-e2df-4a7c-a800-832043efb262_wm",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "動的動作分析",
+      "short_name": "動的分析",
+      "description": "動的動作分析を開始",
+      "url": "/#dynamic-analysis",
+      "icons": [
+        {
+          "src": "https://cdn1.genspark.ai/user-upload-image/gpt_image_generated/1d48ae2f-e2df-4a7c-a800-832043efb262_wm",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AthleteCore Pro">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1E3A8A">
+    <title>AthleteCore Pro - AI姿勢分析システム</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- iOS用アイコン -->
+    <link rel="apple-touch-icon" href="https://cdn1.genspark.ai/user-upload-image/gpt_image_generated/1d48ae2f-e2df-4a7c-a800-832043efb262_wm">
+    <link rel="apple-touch-icon" sizes="152x152" href="https://cdn1.genspark.ai/user-upload-image/gpt_image_generated/1d48ae2f-e2df-4a7c-a800-832043efb262_wm">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://cdn1.genspark.ai/user-upload-image/gpt_image_generated/1d48ae2f-e2df-4a7c-a800-832043efb262_wm">
+    
+    <!-- スプラッシュスクリーン用 -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="apple-touch-startup-image" href="https://cdn1.genspark.ai/user-upload-image/gpt_image_generated/1d48ae2f-e2df-4a7c-a800-832043efb262_wm">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .phone-frame {
+            width: 375px;
+            height: 812px;
+            background: #000;
+            border-radius: 40px;
+            padding: 8px;
+            margin: 0 auto;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            border-radius: 32px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .home-indicator {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 134px;
+            height: 5px;
+            background: #000;
+            border-radius: 3px;
+            opacity: 0.4;
+        }
+        
+        .app-screen {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+            overflow-y: auto;
+        }
+        
+        .app-screen.active {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        
+        .brand-color {
+            color: #1E3A8A;
+        }
+        
+        .brand-bg {
+            background-color: #1E3A8A;
+        }
+        
+        .accent-color {
+            color: #F59E0B;
+        }
+        
+        .accent-bg {
+            background-color: #F59E0B;
+        }
+        
+        /* PWA & Mobile Optimizations */
+        .installed {
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        /* タッチ操作の改善 */
+        button, .sport-btn {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            user-select: none;
+        }
+        
+        button:active, .sport-btn:active {
+            transform: scale(0.98);
+            transition: transform 0.1s ease;
+        }
+        
+        /* スクロール改善 */
+        .app-screen {
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+        }
+        
+        /* フォーカス状態の改善 */
+        input:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.3);
+        }
+        
+        /* カメラビューの改善 */
+        video {
+            object-fit: cover;
+            transform: scaleX(-1); /* 前面カメラのミラー効果 */
+        }
+        
+        /* プルツーリフレッシュの無効化 */
+        body {
+            overscroll-behavior-y: contain;
+        }
+        
+        /* バッテリー効率のためのGPUアクセラレーション */
+        .phone-frame, .app-screen, .fade-in, .slide-up {
+            will-change: transform;
+            transform: translateZ(0);
+        }
+        
+        /* ダークモード対応 */
+        @media (prefers-color-scheme: dark) {
+            .phone-screen {
+                background: #1f2937;
+                color: #f9fafb;
+            }
+            
+            .bg-white {
+                background-color: #374151 !important;
+                color: #f9fafb;
+            }
+            
+            .bg-gray-50 {
+                background-color: #111827 !important;
+            }
+            
+            .text-gray-600 {
+                color: #d1d5db !important;
+            }
+            
+            .text-gray-500 {
+                color: #9ca3af !important;
+            }
+        }
+        
+        /* 横画面での調整 */
+        @media screen and (orientation: landscape) and (max-height: 500px) {
+            .phone-frame {
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
+                padding: 0;
+                margin: 0;
+            }
+            
+            .phone-screen {
+                border-radius: 0;
+            }
+            
+            .home-indicator {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-8">
+    
+    <div class="phone-frame">
+        <div class="phone-screen">
+            <div class="home-indicator"></div>
+            
+            <!-- Splash Screen -->
+            <div id="splash" class="app-screen active bg-white items-center justify-center">
+                <div class="text-center px-8">
+                    <img src="https://cdn1.genspark.ai/user-upload-image/gpt_image_generated/1d48ae2f-e2df-4a7c-a800-832043efb262_wm" 
+                         alt="AthleteCore Pro Icon" class="w-24 h-24 mx-auto mb-8 rounded-2xl shadow-lg">
+                    <h1 class="text-2xl font-bold brand-color mb-2">AthleteCore Pro</h1>
+                    <p class="text-sm text-gray-600 mb-4">AI姿勢分析システム</p>
+                    <div class="w-8 h-1 brand-bg mx-auto rounded-full mb-8"></div>
+                    
+                    <!-- PWA対応状況の表示 -->
+                    <div class="text-xs text-gray-500 space-y-1">
+                        <div id="pwaStatus" class="flex items-center justify-center space-x-2">
+                            <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                            <span>Webアプリとして動作中</span>
+                        </div>
+                        <div class="text-xs text-gray-400">オフライン対応・インストール可能</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Welcome Screen -->
+            <div id="welcome" class="app-screen bg-white">
+                <div class="flex-1 flex flex-col justify-center px-8" style="padding-top: 120px;">
+                    <div class="text-center mb-12">
+                        <h1 class="text-3xl font-bold brand-color mb-6 leading-tight">
+                            AthleteCore Pro
+                        </h1>
+                        <div class="space-y-2 mb-8">
+                            <p class="text-gray-600 text-lg">
+                                Advanced posture analysis for the next generation of athletes
+                            </p>
+                            <p class="text-gray-500 text-sm">
+                                次世代アスリートのための高度姿勢分析
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-6 mb-12">
+                        <div class="text-center">
+                            <div class="w-1 h-16 brand-bg mx-auto mb-4 rounded-full"></div>
+                            <p class="text-gray-600">AI-powered movement analysis</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-1 h-16 brand-bg mx-auto mb-4 rounded-full"></div>
+                            <p class="text-gray-600">Sport-specific evaluations</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-1 h-16 brand-bg mx-auto mb-4 rounded-full"></div>
+                            <p class="text-gray-600">Professional grade insights</p>
+                        </div>
+                    </div>
+                    
+                    <button onclick="showRegistration()" 
+                            class="brand-bg text-white font-medium py-4 px-8 rounded-xl text-lg w-full">
+                        Get Started
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Registration Screen -->
+            <div id="registration" class="app-screen bg-white">
+                <div class="flex-1 overflow-y-auto">
+                    <div class="px-6 py-8">
+                        <div class="text-center mb-8">
+                            <h2 class="text-2xl font-bold brand-color mb-2">Create Your Profile</h2>
+                            <p class="text-gray-600">プロフィールを作成</p>
+                        </div>
+                        
+                        <form id="profileForm" class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Name / 名前</label>
+                                <input id="name" type="text" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Age / 年齢</label>
+                                    <input id="age" type="number" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Height / 身長 (cm)</label>
+                                    <input id="height" type="number" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Weight / 体重 (kg)</label>
+                                <input id="weight" type="number" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Primary Sport / 主要競技</label>
+                                <select id="primarySport" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">Select Sport / 競技を選択</option>
+                                    <option value="soccer">Soccer / サッカー</option>
+                                    <option value="basketball">Basketball / バスケットボール</option>
+                                    <option value="baseball">Baseball / 野球</option>
+                                    <option value="tabletennis">Table Tennis / 卓球</option>
+                                    <option value="volleyball">Volleyball / バレーボール</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Experience Level / 経験レベル</label>
+                                <select id="experienceLevel" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">Select Level / レベルを選択</option>
+                                    <option value="beginner">Beginner / 初心者</option>
+                                    <option value="intermediate">Intermediate / 中級者</option>
+                                    <option value="advanced">Advanced / 上級者</option>
+                                    <option value="professional">Professional / プロ</option>
+                                </select>
+                            </div>
+                            
+                            <button type="button" onclick="handleRegistration()" 
+                                    class="brand-bg text-white font-medium py-4 px-8 rounded-xl text-lg w-full">
+                                Continue / 続行
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dashboard Screen -->
+            <div id="dashboard" class="app-screen bg-gray-50">
+                <div class="flex-1 overflow-y-auto">
+                    <!-- Header -->
+                    <div class="bg-white px-6 py-4 shadow-sm">
+                        <div class="flex justify-between items-center">
+                            <h1 class="text-xl font-bold brand-color">AthleteCore Pro</h1>
+                            <div class="w-8 h-8 bg-gray-300 rounded-full"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Stats Cards -->
+                    <div class="px-6 py-4">
+                        <div class="grid grid-cols-3 gap-4 mb-6">
+                            <div class="bg-white p-4 rounded-xl text-center">
+                                <div class="text-2xl font-bold brand-color">92%</div>
+                                <div class="text-xs text-gray-600">Posture Score</div>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl text-center">
+                                <div class="text-2xl font-bold text-green-600">Good</div>
+                                <div class="text-xs text-gray-600">Balance</div>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl text-center">
+                                <div class="text-2xl font-bold text-orange-600">Low</div>
+                                <div class="text-xs text-gray-600">Risk</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sport Selection -->
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold brand-color mb-4">Sport Analysis</h3>
+                            <div class="bg-white rounded-xl p-1">
+                                <div class="grid grid-cols-5 gap-1">
+                                    <button onclick="selectSport('soccer')" class="sport-btn text-xs py-3 px-2 rounded-lg bg-blue-50 brand-color font-medium">Soccer</button>
+                                    <button onclick="selectSport('basketball')" class="sport-btn text-xs py-3 px-2 rounded-lg">Basketball</button>
+                                    <button onclick="selectSport('baseball')" class="sport-btn text-xs py-3 px-2 rounded-lg">Baseball</button>
+                                    <button onclick="selectSport('tabletennis')" class="sport-btn text-xs py-3 px-2 rounded-lg">Table Tennis</button>
+                                    <button onclick="selectSport('volleyball')" class="sport-btn text-xs py-3 px-2 rounded-lg">Volleyball</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Analysis Options -->
+                        <div class="space-y-4">
+                            <button onclick="showStaticAnalysis()" class="w-full bg-white p-4 rounded-xl text-left flex justify-between items-center">
+                                <div>
+                                    <div class="font-semibold brand-color">Static Posture Analysis</div>
+                                    <div class="text-sm text-gray-600">静的姿勢分析</div>
+                                </div>
+                                <div class="text-gray-400">→</div>
+                            </button>
+                            
+                            <button onclick="showDynamicAnalysis()" class="w-full bg-white p-4 rounded-xl text-left flex justify-between items-center">
+                                <div>
+                                    <div class="font-semibold brand-color">Dynamic Movement Analysis</div>
+                                    <div class="text-sm text-gray-600">動的動作分析</div>
+                                </div>
+                                <div class="text-gray-400">→</div>
+                            </button>
+                            
+                            <button onclick="showSportSpecific()" class="w-full bg-white p-4 rounded-xl text-left flex justify-between items-center">
+                                <div>
+                                    <div class="font-semibold brand-color">Sport-Specific Analysis</div>
+                                    <div class="text-sm text-gray-600">競技特化分析</div>
+                                </div>
+                                <div class="text-gray-400">→</div>
+                            </button>
+                        </div>
+                        
+                        <!-- Analysis History -->
+                        <div class="mt-6">
+                            <h3 class="text-lg font-semibold brand-color mb-4">Recent Analysis / 最近の分析</h3>
+                            <div id="analysisHistory" class="space-y-2">
+                                <p class="text-gray-500 text-sm text-center py-4">No analysis yet / まだ分析がありません</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Static Analysis Screen -->
+            <div id="static-analysis" class="app-screen bg-white">
+                <div class="flex-1 flex flex-col">
+                    <!-- Header -->
+                    <div class="px-6 py-4 border-b">
+                        <div class="flex items-center">
+                            <button onclick="showDashboard()" class="mr-4 text-gray-600">←</button>
+                            <h2 class="text-lg font-semibold brand-color">Static Posture Analysis</h2>
+                        </div>
+                    </div>
+                    
+                    <!-- Camera View -->
+                    <div class="flex-1 bg-gray-100 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="w-48 h-64 bg-gray-200 rounded-lg mb-4 overflow-hidden relative">
+                                <video id="staticCameraFeed" class="w-full h-full object-cover hidden" autoplay muted playsinline></video>
+                                <div id="staticCameraPlaceholder" class="w-full h-full flex items-center justify-center">
+                                    <div class="text-4xl text-gray-400">📷</div>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 mb-4">Position yourself in the frame</p>
+                            <p class="text-sm text-gray-500">フレーム内に立ってください</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Controls -->
+                    <div class="px-6 py-4 space-y-4">
+                        <div class="text-center">
+                            <p class="text-sm text-gray-600 mb-2">Stand naturally with arms at your sides</p>
+                            <p class="text-xs text-gray-500">腕を体の横に自然に立ってください</p>
+                        </div>
+                        <button onclick="startStaticCapture()" class="brand-bg text-white font-medium py-4 px-8 rounded-xl text-lg w-full">
+                            Start Capture / 撮影開始
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dynamic Analysis Screen -->
+            <div id="dynamic-analysis" class="app-screen bg-white">
+                <div class="flex-1 flex flex-col">
+                    <!-- Header -->
+                    <div class="px-6 py-4 border-b">
+                        <div class="flex items-center">
+                            <button onclick="showDashboard()" class="mr-4 text-gray-600">←</button>
+                            <h2 class="text-lg font-semibold brand-color">Dynamic Movement Analysis</h2>
+                        </div>
+                    </div>
+                    
+                    <!-- Camera View -->
+                    <div class="flex-1 bg-gray-100 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="w-48 h-64 bg-gray-200 rounded-lg mb-4 overflow-hidden relative">
+                                <video id="dynamicCameraFeed" class="w-full h-full object-cover hidden" autoplay muted playsinline></video>
+                                <div id="dynamicCameraPlaceholder" class="w-full h-full flex items-center justify-center">
+                                    <div class="text-4xl text-gray-400">🎥</div>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 mb-4">Perform the movement</p>
+                            <p class="text-sm text-gray-500">動作を行ってください</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Instructions -->
+                    <div class="px-6 py-4 space-y-4">
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <p class="text-sm brand-color font-medium mb-1">Current Exercise: Squat</p>
+                            <p class="text-xs text-gray-600">現在のエクササイズ：スクワット</p>
+                        </div>
+                        <button onclick="startDynamicCapture()" class="brand-bg text-white font-medium py-4 px-8 rounded-xl text-lg w-full">
+                            Start Recording / 録画開始
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Results Screen -->
+            <div id="results" class="app-screen bg-gray-50">
+                <div class="flex-1 overflow-y-auto">
+                    <!-- Header -->
+                    <div class="bg-white px-6 py-4 shadow-sm">
+                        <div class="flex items-center">
+                            <button onclick="showDashboard()" class="mr-4 text-gray-600">←</button>
+                            <h2 class="text-lg font-semibold brand-color">Analysis Results</h2>
+                        </div>
+                    </div>
+                    
+                    <!-- Overall Score -->
+                    <div class="px-6 py-4">
+                        <div class="bg-white rounded-xl p-6 mb-6 text-center">
+                            <div class="text-4xl font-bold brand-color mb-2">85/100</div>
+                            <div class="text-lg text-gray-600 mb-1">Overall Score</div>
+                            <div class="text-sm text-gray-500">総合スコア</div>
+                        </div>
+                        
+                        <!-- Analysis Chart -->
+                        <div class="bg-white rounded-xl p-4 mb-6">
+                            <h3 class="text-lg font-semibold brand-color mb-4">Performance Metrics / パフォーマンス指標</h3>
+                            <div style="height: 250px;">
+                                <canvas id="analysisChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- Detailed Results -->
+                        <div class="space-y-4">
+                            <div class="bg-white p-4 rounded-xl">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <div class="font-semibold brand-color">Hip Flexibility</div>
+                                        <div class="text-sm text-gray-500">股関節柔軟性</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div id="hip-score" class="text-green-600 font-bold">92%</div>
+                                        <div class="text-xs text-gray-500">Good</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white p-4 rounded-xl">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <div class="font-semibold brand-color">Postural Stability</div>
+                                        <div class="text-sm text-gray-500">姿勢安定性</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div id="posture-score" class="text-orange-600 font-bold">78%</div>
+                                        <div class="text-xs text-gray-500">Needs Work</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white p-4 rounded-xl">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <div class="font-semibold brand-color">Dynamic Balance</div>
+                                        <div class="text-sm text-gray-500">動的バランス</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div id="balance-score" class="text-green-600 font-bold">85%</div>
+                                        <div class="text-xs text-gray-500">Good</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Recommendations -->
+                        <div class="mt-6">
+                            <h3 class="text-lg font-semibold brand-color mb-4">Recommendations</h3>
+                            <div class="bg-white p-4 rounded-xl">
+                                <div class="space-y-3">
+                                    <div class="flex items-start">
+                                        <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                                        <div>
+                                            <p class="text-sm text-gray-700">Focus on core strengthening exercises</p>
+                                            <p class="text-xs text-gray-500">体幹強化エクササイズに重点を置く</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                                        <div>
+                                            <p class="text-sm text-gray-700">Improve hip flexor mobility</p>
+                                            <p class="text-xs text-gray-500">股関節屈筋群の可動性を向上させる</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 space-y-3">
+                            <button onclick="shareResults()" class="w-full bg-gray-100 text-gray-700 font-medium py-3 px-6 rounded-xl">
+                                Share Results / 結果を共有
+                            </button>
+                            <button onclick="showDashboard()" class="brand-bg text-white font-medium py-4 px-8 rounded-xl text-lg w-full">
+                                Back to Dashboard / ダッシュボードに戻る
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <script>
+        let currentScreen = 'splash';
+        let currentUser = null;
+        
+        // PWA Installation
+        let deferredPrompt;
+        let isInstalled = false;
+
+        // サービスワーカーの登録
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('AthleteCore Pro: サービスワーカーが登録されました', registration.scope);
+                        
+                        // 更新チェック
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // 新しいバージョンが利用可能
+                                    showUpdateAvailable();
+                                }
+                            });
+                        });
+                    })
+                    .catch(error => {
+                        console.log('サービスワーカーの登録に失敗しました:', error);
+                    });
+            });
+        }
+
+        // PWAインストールプロンプト
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            showInstallPrompt();
+        });
+
+        // インストール完了の検出
+        window.addEventListener('appinstalled', () => {
+            console.log('AthleteCore Pro: アプリがインストールされました');
+            isInstalled = true;
+            hideInstallPrompt();
+        });
+
+        // スタンドアローンモードの検出
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+            isInstalled = true;
+            document.body.classList.add('installed');
+        }
+
+        // Initialize app
+        setTimeout(() => {
+            showWelcome();
+        }, 2000);
+        
+        // Camera functions
+        let cameraStream = null;
+        
+        async function initCamera(videoElementId, placeholderId) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: 'user',
+                        width: { ideal: 375 },
+                        height: { ideal: 500 }
+                    } 
+                });
+                
+                const videoElement = document.getElementById(videoElementId);
+                const placeholder = document.getElementById(placeholderId);
+                
+                videoElement.srcObject = stream;
+                videoElement.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+                
+                cameraStream = stream;
+                return true;
+            } catch (error) {
+                console.error('Camera access denied or unavailable:', error);
+                return false;
+            }
+        }
+        
+        function stopCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+        }
+        
+        // API functions
+        async function saveUserProfile(profileData) {
+            try {
+                const response = await fetch('tables/user_profiles', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ...profileData,
+                        created_at: new Date().toISOString()
+                    })
+                });
+                return await response.json();
+            } catch (error) {
+                console.error('Error saving profile:', error);
+                return null;
+            }
+        }
+        
+        async function saveAnalysisResult(resultData) {
+            try {
+                const response = await fetch('tables/analysis_results', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ...resultData,
+                        analysis_date: new Date().toISOString()
+                    })
+                });
+                return await response.json();
+            } catch (error) {
+                console.error('Error saving analysis:', error);
+                return null;
+            }
+        }
+        
+        async function getUserAnalysisHistory(userId) {
+            try {
+                const response = await fetch(`tables/analysis_results?search=${userId}&sort=analysis_date`);
+                const data = await response.json();
+                return data.data.filter(result => result.user_id === userId);
+            } catch (error) {
+                console.error('Error fetching history:', error);
+                return [];
+            }
+        }
+        
+        function showScreen(screenId) {
+            document.querySelectorAll('.app-screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+            currentScreen = screenId;
+        }
+        
+        function showWelcome() {
+            showScreen('welcome');
+            document.getElementById('welcome').classList.add('fade-in');
+        }
+        
+        function showRegistration() {
+            showScreen('registration');
+            document.getElementById('registration').classList.add('slide-up');
+        }
+        
+        async function handleRegistration() {
+            const form = document.getElementById('profileForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const profileData = {
+                name: document.getElementById('name').value,
+                age: parseInt(document.getElementById('age').value),
+                height: parseInt(document.getElementById('height').value),
+                weight: parseInt(document.getElementById('weight').value),
+                primary_sport: document.getElementById('primarySport').value,
+                experience_level: document.getElementById('experienceLevel').value
+            };
+
+            try {
+                const savedUser = await saveUserProfile(profileData);
+                if (savedUser) {
+                    currentUser = savedUser;
+                    showDashboard();
+                } else {
+                    alert('プロフィールの保存に失敗しました。もう一度お試しください。');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                alert('エラーが発生しました。もう一度お試しください。');
+            }
+        }
+
+        function showDashboard() {
+            // Stop camera if running
+            stopCamera();
+            
+            showScreen('dashboard');
+            document.getElementById('dashboard').classList.add('fade-in');
+            updateDashboardContent();
+        }
+        
+        async function updateDashboardContent() {
+            if (currentUser) {
+                // Update greeting with user name
+                const greetingElement = document.querySelector('#dashboard h1');
+                if (greetingElement) {
+                    greetingElement.textContent = `Hello, ${currentUser.name}!`;
+                }
+                
+                // Load and display analysis history
+                await loadAnalysisHistory();
+            }
+        }
+        
+        async function loadAnalysisHistory() {
+            try {
+                const history = await getUserAnalysisHistory(currentUser.id);
+                const historyContainer = document.getElementById('analysisHistory');
+                
+                if (history.length === 0) {
+                    historyContainer.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">No analysis yet / まだ分析がありません</p>';
+                    return;
+                }
+                
+                historyContainer.innerHTML = history.slice(0, 5).map(analysis => {
+                    const date = new Date(analysis.analysis_date).toLocaleDateString('ja-JP');
+                    const typeLabel = {
+                        'static': 'Static / 静的',
+                        'dynamic': 'Dynamic / 動的',
+                        'sport_specific': 'Sport / 競技特化'
+                    };
+                    
+                    return `
+                        <div class="bg-white p-3 rounded-lg border border-gray-100">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <div class="text-sm font-medium brand-color">${typeLabel[analysis.analysis_type] || analysis.analysis_type}</div>
+                                    <div class="text-xs text-gray-500">${date}</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm font-bold ${analysis.overall_score >= 80 ? 'text-green-600' : 'text-orange-600'}">${analysis.overall_score}/100</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                console.error('Error loading history:', error);
+            }
+        }
+        
+        async function showStaticAnalysis() {
+            showScreen('static-analysis');
+            document.getElementById('static-analysis').classList.add('slide-up');
+            
+            // Initialize camera
+            setTimeout(async () => {
+                await initCamera('staticCameraFeed', 'staticCameraPlaceholder');
+            }, 500);
+        }
+        
+        async function showDynamicAnalysis() {
+            showScreen('dynamic-analysis');
+            document.getElementById('dynamic-analysis').classList.add('slide-up');
+            
+            // Initialize camera
+            setTimeout(async () => {
+                await initCamera('dynamicCameraFeed', 'dynamicCameraPlaceholder');
+            }, 500);
+        }
+        
+        function showSportSpecific() {
+            showDynamicAnalysis(); // For demo purposes
+        }
+        
+        function showResults() {
+            showScreen('results');
+            document.getElementById('results').classList.add('fade-in');
+        }
+        
+        function selectSport(sport) {
+            // ハプティクスフィードバック
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+            
+            document.querySelectorAll('.sport-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-50', 'brand-color', 'font-medium');
+                btn.classList.add('text-gray-600');
+            });
+            
+            event.target.classList.add('bg-blue-50', 'brand-color', 'font-medium');
+        }
+        
+        async function startStaticCapture() {
+            // Simulate capture process
+            event.target.textContent = 'Analyzing... / 分析中...';
+            event.target.disabled = true;
+            
+            setTimeout(async () => {
+                // Generate realistic analysis data
+                const analysisData = generateAnalysisData('static');
+                
+                if (currentUser) {
+                    await saveAnalysisResult({
+                        user_id: currentUser.id,
+                        analysis_type: 'static',
+                        sport: currentUser.primary_sport,
+                        ...analysisData
+                    });
+                }
+                
+                updateResultsDisplay(analysisData);
+                
+                // 分析完了の振動フィードバック
+                if (navigator.vibrate) {
+                    navigator.vibrate([200, 100, 200]);
+                }
+                
+                showResults();
+            }, 3000);
+        }
+        
+        async function startDynamicCapture() {
+            // Simulate recording process
+            event.target.textContent = 'Recording... / 録画中...';
+            event.target.disabled = true;
+            
+            setTimeout(async () => {
+                // Generate realistic analysis data
+                const analysisData = generateAnalysisData('dynamic');
+                
+                if (currentUser) {
+                    await saveAnalysisResult({
+                        user_id: currentUser.id,
+                        analysis_type: 'dynamic',
+                        sport: currentUser.primary_sport,
+                        ...analysisData
+                    });
+                }
+                
+                updateResultsDisplay(analysisData);
+                
+                // 分析完了の振動フィードバック
+                if (navigator.vibrate) {
+                    navigator.vibrate([200, 100, 200]);
+                }
+                
+                showResults();
+            }, 5000);
+        }
+        
+        function generateAnalysisData(type) {
+            const sport = currentUser ? currentUser.primary_sport : 'general';
+            
+            // Sport-specific analysis parameters
+            const sportProfiles = {
+                soccer: {
+                    static: {
+                        base: { overall_score: 82, hip_flexibility: 90, postural_stability: 75, dynamic_balance: 85 },
+                        variance: 8,
+                        focus: ['hip_flexibility', 'dynamic_balance']
+                    },
+                    dynamic: {
+                        base: { overall_score: 88, hip_flexibility: 85, postural_stability: 82, dynamic_balance: 92 },
+                        variance: 6,
+                        focus: ['dynamic_balance']
+                    }
+                },
+                basketball: {
+                    static: {
+                        base: { overall_score: 78, hip_flexibility: 80, postural_stability: 85, dynamic_balance: 85 },
+                        variance: 10,
+                        focus: ['postural_stability', 'dynamic_balance']
+                    },
+                    dynamic: {
+                        base: { overall_score: 85, hip_flexibility: 82, postural_stability: 88, dynamic_balance: 90 },
+                        variance: 7,
+                        focus: ['postural_stability']
+                    }
+                },
+                baseball: {
+                    static: {
+                        base: { overall_score: 83, hip_flexibility: 78, postural_stability: 88, dynamic_balance: 80 },
+                        variance: 9,
+                        focus: ['postural_stability']
+                    },
+                    dynamic: {
+                        base: { overall_score: 80, hip_flexibility: 85, postural_stability: 85, dynamic_balance: 82 },
+                        variance: 8,
+                        focus: ['hip_flexibility']
+                    }
+                },
+                tabletennis: {
+                    static: {
+                        base: { overall_score: 85, hip_flexibility: 82, postural_stability: 90, dynamic_balance: 88 },
+                        variance: 7,
+                        focus: ['postural_stability']
+                    },
+                    dynamic: {
+                        base: { overall_score: 87, hip_flexibility: 80, postural_stability: 92, dynamic_balance: 90 },
+                        variance: 5,
+                        focus: ['postural_stability', 'dynamic_balance']
+                    }
+                },
+                volleyball: {
+                    static: {
+                        base: { overall_score: 80, hip_flexibility: 85, postural_stability: 82, dynamic_balance: 88 },
+                        variance: 8,
+                        focus: ['hip_flexibility', 'dynamic_balance']
+                    },
+                    dynamic: {
+                        base: { overall_score: 86, hip_flexibility: 88, postural_stability: 85, dynamic_balance: 92 },
+                        variance: 6,
+                        focus: ['dynamic_balance']
+                    }
+                }
+            };
+            
+            // Default profile if sport not found
+            const profile = sportProfiles[sport] || sportProfiles.soccer;
+            const typeProfile = profile[type];
+            
+            // Generate scores with sport-specific variance
+            const scores = {};
+            Object.keys(typeProfile.base).forEach(key => {
+                const baseScore = typeProfile.base[key];
+                const variance = typeProfile.variance;
+                scores[key] = Math.max(0, Math.min(100, baseScore + (Math.random() - 0.5) * variance * 2));
+                scores[key] = Math.round(scores[key]);
+            });
+            
+            // Generate sport-specific recommendations
+            const sportRecommendations = {
+                soccer: [
+                    "Enhance ball control balance drills / ボールコントロールバランスドリルの強化",
+                    "Focus on single-leg stability for shooting / シュート時の片足安定性に集中",
+                    "Improve hip flexor mobility for agility / 敏捷性向上のための股関節屈筋群の可動性改善",
+                    "Strengthen core for better shooting accuracy / より良いシュート精度のための体幹強化"
+                ],
+                basketball: [
+                    "Practice jump landing mechanics / ジャンプ着地メカニクスの練習",
+                    "Improve ankle stability for court movements / コート動作のための足首安定性向上",
+                    "Enhance lateral movement balance / 横方向動作バランスの強化",
+                    "Strengthen posterior chain for jumping / ジャンプのための後面筋群強化"
+                ],
+                baseball: [
+                    "Focus on rotational power development / 回転パワー開発に集中",
+                    "Improve shoulder girdle stability / 肩甲帯安定性の向上",
+                    "Enhance hip-shoulder separation / 腰と肩の分離動作の強化",
+                    "Strengthen obliques for batting power / バッティングパワーのための腹斜筋強化"
+                ],
+                tabletennis: [
+                    "Practice quick lateral movements / 素早い横方向動作の練習",
+                    "Improve wrist and forearm stability / 手首・前腕の安定性向上",
+                    "Enhance reaction time balance drills / 反応時間バランスドリルの強化",
+                    "Focus on core stability for quick returns / 素早いリターンのための体幹安定性"
+                ],
+                volleyball: [
+                    "Practice spike approach mechanics / スパイクアプローチメカニクスの練習",
+                    "Improve shoulder flexibility for serves / サーブのための肩柔軟性向上",
+                    "Enhance vertical jump stability / 垂直ジャンプ安定性の強化",
+                    "Strengthen legs for better blocking / より良いブロックのための脚力強化"
+                ]
+            };
+            
+            const recommendations = sportRecommendations[sport] || sportRecommendations.soccer;
+            
+            return {
+                ...scores,
+                recommendations: recommendations.slice(0, 2 + Math.floor(Math.random() * 2))
+            };
+        }
+        
+        function updateResultsDisplay(analysisData) {
+            // Update the results screen with actual data
+            document.querySelector('#results .text-4xl').textContent = `${analysisData.overall_score}/100`;
+            
+            // Update individual scores
+            document.getElementById('hip-score').textContent = `${analysisData.hip_flexibility}%`;
+            document.getElementById('posture-score').textContent = `${analysisData.postural_stability}%`;
+            document.getElementById('balance-score').textContent = `${analysisData.dynamic_balance}%`;
+            
+            // Create chart
+            createAnalysisChart(analysisData);
+        }
+        
+        function createAnalysisChart(data) {
+            const ctx = document.getElementById('analysisChart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (window.analysisChart instanceof Chart) {
+                window.analysisChart.destroy();
+            }
+            
+            window.analysisChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: [
+                        'Hip Flexibility\n股関節柔軟性',
+                        'Postural Stability\n姿勢安定性',
+                        'Dynamic Balance\n動的バランス',
+                        'Overall Performance\n総合パフォーマンス'
+                    ],
+                    datasets: [{
+                        label: 'Current Score',
+                        data: [
+                            data.hip_flexibility,
+                            data.postural_stability,
+                            data.dynamic_balance,
+                            data.overall_score
+                        ],
+                        backgroundColor: 'rgba(30, 58, 138, 0.2)',
+                        borderColor: 'rgba(30, 58, 138, 0.8)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(30, 58, 138, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(30, 58, 138, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            angleLines: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            pointLabels: {
+                                font: {
+                                    size: 10
+                                },
+                                color: '#374151'
+                            },
+                            ticks: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function shareResults() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'AthleteCore Pro - 分析結果',
+                    text: `私の姿勢分析スコア: ${document.querySelector('#results .text-4xl').textContent}`,
+                    url: window.location.href
+                }).catch(console.error);
+            } else {
+                alert('Results shared! / 結果を共有しました！');
+            }
+        }
+
+        // PWA関連の関数
+        function showInstallPrompt() {
+            if (!isInstalled && deferredPrompt) {
+                // インストールボタンを表示
+                const installButton = document.createElement('button');
+                installButton.textContent = 'アプリをインストール';
+                installButton.className = 'fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+                installButton.id = 'installButton';
+                installButton.onclick = installApp;
+                document.body.appendChild(installButton);
+            }
+        }
+
+        function hideInstallPrompt() {
+            const installButton = document.getElementById('installButton');
+            if (installButton) {
+                installButton.remove();
+            }
+        }
+
+        async function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`PWAインストール結果: ${outcome}`);
+                deferredPrompt = null;
+                hideInstallPrompt();
+            }
+        }
+
+        function showUpdateAvailable() {
+            const updateNotification = document.createElement('div');
+            updateNotification.innerHTML = `
+                <div class="fixed top-4 left-4 right-4 bg-blue-600 text-white p-4 rounded-lg shadow-lg z-50">
+                    <p class="text-sm mb-2">新しいバージョンが利用可能です</p>
+                    <button onclick="updateApp()" class="bg-white text-blue-600 px-3 py-1 rounded text-sm">
+                        更新
+                    </button>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-white">
+                        ×
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(updateNotification);
+        }
+
+        function updateApp() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then(registration => {
+                    registration.update();
+                    window.location.reload();
+                });
+            }
+        }
+
+        // オフライン/オンライン状態の監視
+        function updateOnlineStatus() {
+            const isOnline = navigator.onLine;
+            const statusIndicator = document.getElementById('connectionStatus');
+            
+            if (!statusIndicator) {
+                const indicator = document.createElement('div');
+                indicator.id = 'connectionStatus';
+                indicator.className = 'fixed top-0 left-0 right-0 z-50 text-center py-1 text-xs';
+                document.body.appendChild(indicator);
+            }
+            
+            const indicator = document.getElementById('connectionStatus');
+            
+            if (isOnline) {
+                indicator.className = 'fixed top-0 left-0 right-0 z-50 text-center py-1 text-xs bg-green-500 text-white';
+                indicator.textContent = 'オンライン';
+                setTimeout(() => {
+                    indicator.style.display = 'none';
+                }, 2000);
+            } else {
+                indicator.className = 'fixed top-0 left-0 right-0 z-50 text-center py-1 text-xs bg-red-500 text-white';
+                indicator.textContent = 'オフライン - 一部機能が制限されます';
+                indicator.style.display = 'block';
+            }
+        }
+
+        // ページ読み込み時とオンライン状態変更時に実行
+        window.addEventListener('load', updateOnlineStatus);
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+
+        // バッテリー状態の監視（対応ブラウザのみ）
+        if ('getBattery' in navigator) {
+            navigator.getBattery().then(battery => {
+                function updateBatteryInfo() {
+                    if (battery.level < 0.2 && !battery.charging) {
+                        console.log('バッテリー残量が少なくなっています。省電力モードを検討してください。');
+                    }
+                }
+                
+                battery.addEventListener('levelchange', updateBatteryInfo);
+                battery.addEventListener('chargingchange', updateBatteryInfo);
+                updateBatteryInfo();
+            });
+        }
+    </script>
+</body>
+</html>
