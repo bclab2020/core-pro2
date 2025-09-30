@@ -408,8 +408,21 @@
         .direction-info p {
             font-size: clamp(0.85rem, 2.5vw, 1rem);
             color: white;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             opacity: 0.9;
+        }
+        
+        .distance-guide {
+            margin-bottom: 15px;
+        }
+        
+        .distance-guide small {
+            font-size: clamp(0.7rem, 2vw, 0.85rem);
+            color: #fbbf24;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 4px 8px;
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
         }
         
         .progress-bar {
@@ -477,10 +490,10 @@
         
         .body-outline {
             position: relative;
-            width: clamp(100px, 25vw, 140px);
-            height: clamp(300px, 65vh, 420px);
-            border: 3px solid rgba(59, 130, 246, 0.8);
-            border-radius: 15px;
+            width: clamp(80px, 20vw, 110px);
+            height: clamp(220px, 50vh, 320px);
+            border: 2px solid rgba(59, 130, 246, 0.8);
+            border-radius: 12px;
             background: rgba(59, 130, 246, 0.1);
             animation: pulse 2s ease-in-out infinite;
             backdrop-filter: blur(5px);
@@ -488,11 +501,11 @@
         
         .head-guide {
             position: absolute;
-            top: 10px;
+            top: 8px;
             left: 50%;
             transform: translateX(-50%);
-            width: 30px;
-            height: 30px;
+            width: 24px;
+            height: 24px;
             border: 2px solid rgba(59, 130, 246, 0.8);
             border-radius: 50%;
             background: rgba(59, 130, 246, 0.2);
@@ -500,44 +513,44 @@
         
         .shoulders-guide {
             position: absolute;
-            top: 50px;
-            left: 10px;
-            right: 10px;
-            height: 3px;
+            top: 38px;
+            left: 8px;
+            right: 8px;
+            height: 2px;
             background: rgba(59, 130, 246, 0.8);
-            border-radius: 2px;
+            border-radius: 1px;
         }
         
         .torso-guide {
             position: absolute;
-            top: 60px;
-            left: 30px;
-            right: 30px;
-            height: 100px;
-            border: 2px solid rgba(59, 130, 246, 0.6);
-            border-radius: 8px;
+            top: 45px;
+            left: 20px;
+            right: 20px;
+            height: 70px;
+            border: 1px solid rgba(59, 130, 246, 0.6);
+            border-radius: 6px;
             background: rgba(59, 130, 246, 0.05);
         }
         
         .legs-guide {
             position: absolute;
-            top: 170px;
-            left: 40px;
-            right: 40px;
-            height: 80px;
-            border: 2px solid rgba(59, 130, 246, 0.6);
-            border-radius: 6px;
+            top: 125px;
+            left: 25px;
+            right: 25px;
+            height: 60px;
+            border: 1px solid rgba(59, 130, 246, 0.6);
+            border-radius: 4px;
             background: rgba(59, 130, 246, 0.05);
         }
         
         .feet-guide {
             position: absolute;
-            bottom: 10px;
-            left: 20px;
-            right: 20px;
-            height: 15px;
+            bottom: 8px;
+            left: 15px;
+            right: 15px;
+            height: 12px;
             background: rgba(59, 130, 246, 0.8);
-            border-radius: 3px;
+            border-radius: 2px;
         }
         
         .guide-text {
@@ -893,6 +906,9 @@
                 <div class="direction-info">
                     <h3 id="current-direction">正面</h3>
                     <p id="direction-instruction">正面を向いて、まっすぐカメラを見てください</p>
+                    <div class="distance-guide">
+                        <small>📏 推奨距離: 1-2メートル | 🎯 全身を青い枠に合わせてください</small>
+                    </div>
                     <div class="progress-bar">
                         <div id="progress-fill" class="progress-fill"></div>
                     </div>
@@ -913,7 +929,7 @@
                             <div class="legs-guide"></div>
                             <div class="feet-guide"></div>
                         </div>
-                        <div class="guide-text">全身が枠内に入るように立ってください</div>
+                        <div class="guide-text">1-2m離れて全身を枠内に合わせてください</div>
                     </div>
                     
                     <!-- MediaPipe骨格描画用キャンバス -->
@@ -1129,12 +1145,17 @@
         async function initCameraStream() {
             const video = document.getElementById('camera-video');
             
-            // カメラの制約を設定
+            // カメラの制約を設定（広角・近距離撮影最適化）
             const constraints = {
                 video: {
-                    width: { ideal: 720 },
-                    height: { ideal: 1280 },
-                    facingMode: selectedMode === 'selfie' ? 'user' : 'environment'
+                    width: { ideal: 1080, max: 1920 },
+                    height: { ideal: 1920, max: 2560 },
+                    facingMode: selectedMode === 'selfie' ? 'user' : 'environment',
+                    // 広角レンズを優先（利用可能な場合）
+                    ...(selectedMode === 'assisted' && {
+                        aspectRatio: { ideal: 9/16 },
+                        frameRate: { ideal: 30 }
+                    })
                 },
                 audio: false
             };
@@ -1178,8 +1199,8 @@
                     smoothLandmarks: true,
                     enableSegmentation: false,
                     smoothSegmentation: false,
-                    minDetectionConfidence: 0.7,
-                    minTrackingConfidence: 0.5
+                    minDetectionConfidence: 0.5, // 0.7 → 0.5 近距離対応
+                    minTrackingConfidence: 0.3    // 0.5 → 0.3 近距離対応
                 });
                 
                 // 姿勢検出コールバック
@@ -1292,45 +1313,48 @@
         }
         
         function calculatePoseScore(landmarks) {
-            // 姿勢の品質スコアを計算（0-100）
+            // 姿勢の品質スコアを計算（近距離撮影対応）
             let score = 100;
             
-            // 可視性チェック
-            const visibleCount = landmarks.filter(lm => lm.visibility > 0.7).length;
+            // 可視性チェック（緩和された基準）
+            const visibleCount = landmarks.filter(lm => lm.visibility > 0.5).length; // 0.7 → 0.5
             const visibilityRatio = visibleCount / landmarks.length;
             
-            if (visibilityRatio < 0.7) {
-                score *= visibilityRatio;
+            if (visibilityRatio < 0.5) { // 0.7 → 0.5 に緩和
+                score *= visibilityRatio * 1.5; // 補正係数を追加
             }
             
-            // 姿勢の安定性チェック（簡易版）
+            // 姿勢の安定性チェック（近距離対応）
             if (landmarks.length >= 33) {
                 const leftShoulder = landmarks[11];
                 const rightShoulder = landmarks[12];
                 const leftHip = landmarks[23];
                 const rightHip = landmarks[24];
                 
-                // 肩の水平度チェック
+                // 肩の水平度チェック（閾値緩和）
                 const shoulderTilt = Math.abs(leftShoulder.y - rightShoulder.y);
-                if (shoulderTilt > 0.05) {
-                    score *= 0.9;
+                if (shoulderTilt > 0.08) { // 0.05 → 0.08 に緩和
+                    score *= 0.95; // ペナルティも緩和 0.9 → 0.95
                 }
                 
-                // 腰の水平度チェック
+                // 腰の水平度チェック（閾値緩和）
                 const hipTilt = Math.abs(leftHip.y - rightHip.y);
-                if (hipTilt > 0.05) {
-                    score *= 0.9;
+                if (hipTilt > 0.08) { // 0.05 → 0.08 に緩和
+                    score *= 0.95; // ペナルティも緩和 0.9 → 0.95
                 }
             }
+            
+            // 最低スコアを保証
+            score = Math.max(score, 30);
             
             return Math.round(score);
         }
         
         function checkFullBodyVisibility(landmarks) {
-            // 全身が見えているかチェック
+            // 全身が見えているかチェック（近距離撮影対応）
             if (landmarks.length < 33) return false;
             
-            // 重要なランドマークの可視性をチェック
+            // 重要なランドマークの可視性をチェック（緩和された基準）
             const keyPoints = [
                 landmarks[0],  // 鼻
                 landmarks[11], // 左肩
@@ -1341,11 +1365,12 @@
                 landmarks[28]  // 右足首
             ];
             
+            // 可視性閾値を下げ、必要ポイント数も緩和
             const visibleKeyPoints = keyPoints.filter(point => 
-                point && point.visibility > 0.7
+                point && point.visibility > 0.5  // 0.7 → 0.5 に緩和
             ).length;
             
-            return visibleKeyPoints >= 6; // 7点中6点以上で全身表示とみなす
+            return visibleKeyPoints >= 5; // 7点中5点以上で全身表示とみなす（緩和）
         }
         
         function updatePoseStatus(status, type) {
@@ -1433,9 +1458,9 @@
                 return;
             }
             
-            // 姿勢スコアが低い場合の警告
-            if (poseScore < 70) {
-                const proceed = confirm(`姿勢スコア: ${poseScore}%\n\nスコアが低めですが、このまま撮影しますか？`);
+            // 姿勢スコアが低い場合の警告（近距離撮影対応）
+            if (poseScore < 50) { // 70 → 50 に緩和
+                const proceed = confirm(`姿勢スコア: ${poseScore}%\n\nスコアが低めですが、このまま撮影しますか？\n\n💡 ヒント: 1-2m離れて全身が見えるように調整してください`);
                 if (!proceed) {
                     return;
                 }
