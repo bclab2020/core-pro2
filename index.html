@@ -499,8 +499,8 @@
         
         .body-outline {
             position: relative;
-            width: clamp(80px, 20vw, 110px);
-            height: clamp(220px, 50vh, 320px);
+            width: clamp(60px, 18vw, 90px);
+            height: clamp(180px, 40vh, 260px);
             border: 2px solid rgba(59, 130, 246, 0.8);
             border-radius: 12px;
             background: rgba(59, 130, 246, 0.1);
@@ -916,8 +916,8 @@
                     <h3 id="current-direction">正面</h3>
                     <p id="direction-instruction">正面を向いて、まっすぐカメラを見てください</p>
                     <div class="distance-guide">
-                        <small>📏 推奨距離: 0.5-1メートル | 🎯 全身が青い枠内に入るよう調整してください</small>
-                        <small class="capture-tips">💡 コツ: 人物は小さく映っても大丈夫です・背景はすっきりと・十分な明るさを確保</small>
+                        <small id="distance-guidance">📏 推奨距離: モード選択後に表示 | 🎯 全身が青い枠内に入るよう調整してください</small>
+                        <small id="camera-tips" class="capture-tips">💡 コツ: 背景はすっきりと・十分な明るさを確保</small>
                     </div>
                     <div class="progress-bar">
                         <div id="progress-fill" class="progress-fill"></div>
@@ -997,12 +997,12 @@
                             <button class="btn mode-btn" onclick="selectMode('selfie')">
                                 <div class="mode-icon">🤳</div>
                                 <div>セルフ撮影</div>
-                                <small>インカメラ使用</small>
+                                <small>インカメラ・狭角<br>推奨: 1.5-2m</small>
                             </button>
                             <button class="btn mode-btn" onclick="selectMode('assisted')">
                                 <div class="mode-icon">📸</div>
                                 <div>他者撮影</div>
-                                <small>アウトカメラ使用</small>
+                                <small>アウトカメラ・広角<br>推奨: 0.8-1.2m</small>
                             </button>
                         </div>
                     </div>
@@ -1101,6 +1101,14 @@
             
             const modeText = mode === 'selfie' ? 'セルフ撮影' : '他者撮影';
             console.log(`✅ ${modeText}モードが選択されました`);
+            
+            // モード別の距離情報をプレビュー表示
+            const startBtn = document.getElementById('start-camera-btn');
+            if (mode === 'selfie') {
+                startBtn.textContent = 'カメラを開始（推奨: 1.5-2m離れる）';
+            } else {
+                startBtn.textContent = 'カメラを開始（推奨: 0.8-1.2m離れる）';
+            }
         }
         
         // カメラ関連の変数
@@ -1148,6 +1156,9 @@
             // 初期化
             currentCaptureIndex = 0;
             capturedPhotos = [];
+            
+            // カメラモード別のUI調整
+            updateCameraModeUI();
             updateCameraUI();
             updatePhotoGrid();
         }
@@ -1409,6 +1420,34 @@
                     element.className = 'status error';
                 }
             }
+        }
+        
+        function updateCameraModeUI() {
+            // iPhoneカメラ特性に基づく最適な距離設定
+            const distanceGuidance = document.getElementById('distance-guidance');
+            const cameraTips = document.getElementById('camera-tips');
+            const bodyOutline = document.querySelector('.body-outline');
+            
+            if (selectedMode === 'selfie') {
+                // インカメラ（セルフィー）: 狭角レンズで全身撮影には遠い距離が必要
+                distanceGuidance.innerHTML = '📏 推奨距離: 1.5-2メートル（インカメラ・狭角） | 🎯 全身が青い枠内に入るよう調整してください';
+                cameraTips.innerHTML = '💡 セルフィーのコツ: 腕を伸ばし限界まで離れる・タイマー使用・三脚推奨・背景はすっきりと';
+                
+                // インカメラ用に枠を大きく調整
+                bodyOutline.style.width = 'clamp(70px, 22vw, 100px)';
+                bodyOutline.style.height = 'clamp(200px, 45vh, 280px)';
+                
+            } else if (selectedMode === 'assisted') {
+                // アウトカメラ（他者撮影）: 広角レンズで近距離OK
+                distanceGuidance.innerHTML = '📏 推奨距離: 0.8-1.2メートル（アウトカメラ・広角） | 🎯 全身が青い枠内に入るよう調整してください';
+                cameraTips.innerHTML = '💡 撮影のコツ: 広角なので近くてOK・iPhone11以降なら超広角も利用可能・背景はすっきりと';
+                
+                // アウトカメラ用にコンパクトな枠
+                bodyOutline.style.width = 'clamp(50px, 15vw, 75px)';
+                bodyOutline.style.height = 'clamp(150px, 35vh, 220px)';
+            }
+            
+            console.log(`📱 カメラUI更新: ${selectedMode} モード`);
         }
         
         function updateCameraUI() {
