@@ -371,26 +371,31 @@
             margin-top: 20px;
         }
         
-        /* カメラ画面 */
+        /* カメラ画面 - 9:16比率最適化 */
         #camera {
             background: #000000;
-            padding: 10px;
+            padding: 0;
             overflow: hidden;
+            position: relative;
         }
         
         .camera-container {
             width: 100%;
-            height: 100%;
+            height: 100vh;
+            height: -webkit-fill-available;
             display: flex;
             flex-direction: column;
-            max-width: 500px;
-            margin: 0 auto;
+            position: relative;
         }
         
         .camera-header {
-            background: rgba(0, 0, 0, 0.8);
-            padding: 15px;
-            border-radius: 15px 15px 0 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 20;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 70%, transparent 100%);
+            padding: clamp(15px, 4vh, 25px) 20px clamp(30px, 6vh, 50px) 20px;
             text-align: center;
         }
         
@@ -430,10 +435,12 @@
         }
         
         .camera-preview {
-            position: relative;
-            flex: 1;
-            background: #1a1a1a;
-            border-radius: 0 0 15px 15px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000000;
             overflow: hidden;
             display: flex;
             justify-content: center;
@@ -444,6 +451,12 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transform: scaleX(-1); /* セルフィーモード用の鏡像効果 */
+        }
+        
+        /* 他者撮影モード時は鏡像を無効化 */
+        body[data-camera-mode="assisted"] #camera-video {
+            transform: none;
         }
         
         .camera-overlay {
@@ -464,12 +477,13 @@
         
         .body-outline {
             position: relative;
-            width: 120px;
-            height: 300px;
+            width: clamp(100px, 25vw, 140px);
+            height: clamp(300px, 65vh, 420px);
             border: 3px solid rgba(59, 130, 246, 0.8);
             border-radius: 15px;
             background: rgba(59, 130, 246, 0.1);
             animation: pulse 2s ease-in-out infinite;
+            backdrop-filter: blur(5px);
         }
         
         .head-guide {
@@ -556,12 +570,19 @@
             z-index: 10;
         }
         
-        /* 姿勢情報表示 */
+        /* 姿勢情報表示 - ガラスモーフィズム */
         .pose-info {
-            background: rgba(0, 0, 0, 0.8);
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 15px;
+            position: absolute;
+            top: clamp(120px, 25vh, 180px);
+            right: 15px;
+            z-index: 15;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 12px 15px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            min-width: 150px;
         }
         
         .pose-status {
@@ -601,25 +622,69 @@
         }
         
         .camera-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 20;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.8);
+            padding: clamp(20px, 5vh, 35px) 20px clamp(25px, 6vh, 40px) 20px;
+            background: linear-gradient(0deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.6) 50%, transparent 100%);
             gap: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        /* ガラスモーフィズム カメラボタン */
+        .camera-controls .btn {
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .camera-controls .btn-secondary {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            min-width: 80px;
+        }
+        
+        .camera-controls .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
         }
         
         .capture-btn {
-            flex: 1;
-            max-width: 200px;
+            width: clamp(70px, 18vw, 85px);
+            height: clamp(70px, 18vw, 85px);
+            border-radius: 50%;
             position: relative;
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            font-size: 1.1rem;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.9), rgba(217, 119, 6, 0.9));
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            font-size: clamp(0.8rem, 2.5vw, 1rem);
             font-weight: 600;
+            backdrop-filter: blur(20px);
+            box-shadow: 
+                0 8px 32px rgba(245, 158, 11, 0.4),
+                inset 0 2px 4px rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: none;
         }
         
         .capture-btn:hover {
-            background: linear-gradient(135deg, #f59e0b, #92400e);
+            background: linear-gradient(135deg, rgba(245, 158, 11, 1), rgba(217, 119, 6, 1));
+            transform: scale(1.05);
+            box-shadow: 
+                0 12px 40px rgba(245, 158, 11, 0.6),
+                inset 0 2px 4px rgba(255, 255, 255, 0.3);
+        }
+        
+        .capture-btn:active {
+            transform: scale(0.95);
         }
         
         .countdown {
@@ -637,11 +702,18 @@
         }
         
         .captured-photos {
-            background: rgba(0, 0, 0, 0.9);
+            position: absolute;
+            bottom: clamp(120px, 25vh, 180px);
+            left: 15px;
+            right: 15px;
+            z-index: 15;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             padding: 15px;
-            margin-top: 10px;
-            border-radius: 15px;
+            border-radius: 20px;
             text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
         
         .captured-photos h4 {
@@ -1044,6 +1116,9 @@
             document.getElementById('analysis').classList.remove('active');
             document.getElementById('camera').classList.add('active');
             
+            // カメラモードをbodyに設定（鏡像切り替え用）
+            document.body.setAttribute('data-camera-mode', selectedMode);
+            
             // 初期化
             currentCaptureIndex = 0;
             capturedPhotos = [];
@@ -1146,6 +1221,13 @@
             // キャンバスクリア
             canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
             
+            // セルフィーモード時は座標系を反転
+            if (selectedMode === 'selfie') {
+                canvasCtx.save();
+                canvasCtx.scale(-1, 1);
+                canvasCtx.translate(-canvas.width, 0);
+            }
+            
             if (results.poseLandmarks) {
                 currentPoseData = results.poseLandmarks;
                 
@@ -1168,6 +1250,11 @@
                 updatePoseStatus('認識できません', 'error');
                 updatePoseScore(0);
                 updateFullBodyStatus(false);
+            }
+            
+            // セルフィーモード時の座標系を復元
+            if (selectedMode === 'selfie') {
+                canvasCtx.restore();
             }
         }
         
