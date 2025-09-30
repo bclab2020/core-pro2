@@ -1105,9 +1105,9 @@
             // モード別の距離情報をプレビュー表示
             const startBtn = document.getElementById('start-camera-btn');
             if (mode === 'selfie') {
-                startBtn.textContent = 'カメラを開始（推奨: 80-120cm離れる）';
+                startBtn.textContent = 'カメラを開始（推奨: 150-200cm離れる）';
             } else {
-                startBtn.textContent = 'カメラを開始（推奨: 60-90cm離れる）';
+                startBtn.textContent = 'カメラを開始（推奨: 80-120cm離れる）';
             }
         }
         
@@ -1166,21 +1166,44 @@
         async function initCameraStream() {
             const video = document.getElementById('camera-video');
             
+            console.log('🔍 Current selectedMode:', selectedMode);
+            const facingModeValue = selectedMode === 'selfie' ? 'user' : 'environment';
+            console.log('🎯 Using facingMode:', facingModeValue);
+            
+            // 既存のストリームがある場合は停止
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+            
             // 80cmカメラ高モバイル縦向き撮影に最適化
             const constraints = {
                 video: {
                     width: { ideal: 720, max: 1080 },
                     height: { ideal: 1280, max: 1920 },
-                    facingMode: selectedMode === 'selfie' ? 'user' : 'environment',
+                    facingMode: facingModeValue,
                     frameRate: { ideal: 30 }
                 },
                 audio: false
             };
             
+            console.log('📱 Camera constraints:', constraints);
+            
             try {
-                console.log('🎥 Requesting camera access...');
+                console.log('🎥 Requesting camera access with constraints:', JSON.stringify(constraints, null, 2));
                 currentStream = await navigator.mediaDevices.getUserMedia(constraints);
                 video.srcObject = currentStream;
+                
+                // カメラトラック情報をログ出力
+                const videoTrack = currentStream.getVideoTracks()[0];
+                if (videoTrack) {
+                    const settings = videoTrack.getSettings();
+                    console.log('✅ Camera active - Settings:', {
+                        facingMode: settings.facingMode,
+                        width: settings.width,
+                        height: settings.height,
+                        deviceId: settings.deviceId
+                    });
+                }
                 
                 video.onloadedmetadata = () => {
                     console.log('✅ Camera stream ready');
@@ -1425,8 +1448,8 @@
             
             if (selectedMode === 'selfie') {
                 // インカメラ: 実用的な範囲での撮影
-                distanceGuidance.innerHTML = '📏 推奨距離: 80-120cm（調整しながらお試しください） | 🎯 全身が青い枠内に入るよう調整してください';
-                cameraTips.innerHTML = '💡 セルフィーのコツ: 1m前後で調整・タイマー3秒推奨・明るい場所で・壁や柱を背景に';
+                distanceGuidance.innerHTML = '📏 推奨距離: 150-200cm（全身撮影に必要） | 🎯 全身が青い枠内に入るよう調整してください';
+                cameraTips.innerHTML = '💡 セルフィーのコツ: 1.5-2m離れる・タイマー使用推奨・明るい場所で・壁を背景に';
                 
                 // インカメラ用の枠サイズ（調整可能範囲想定）
                 bodyOutline.style.width = 'clamp(80px, 20vw, 120px)';
@@ -1434,8 +1457,8 @@
                 
             } else if (selectedMode === 'assisted') {
                 // アウトカメラ: 実用的な範囲での撮影
-                distanceGuidance.innerHTML = '📏 推奨距離: 60-90cm（調整しながらお試しください） | 🎯 全身が青い枠内に入るよう調整してください';
-                cameraTips.innerHTML = '💡 撮影のコツ: 60-90cm程度で調整・明るい場所で・広角レンズ活用';
+                distanceGuidance.innerHTML = '📏 推奨距離: 80-120cm（広角レンズ活用） | 🎯 全身が青い枠内に入るよう調整してください';
+                cameraTips.innerHTML = '💡 撮影のコツ: 80-120cm程度で調整・明るい場所で・幅広い視野活用';
                 
                 // アウトカメラ用の枠サイズ（調整可能範囲想定）
                 bodyOutline.style.width = 'clamp(70px, 18vw, 100px)';
@@ -1446,9 +1469,9 @@
             const guideText = document.getElementById('guide-text-dynamic');
             if (guideText) {
                 if (selectedMode === 'selfie') {
-                    guideText.textContent = '80-120cm離れて全身を枠内に合わせてください';
+                    guideText.textContent = '150-200cm離れて全身を枠内に合わせてください';
                 } else if (selectedMode === 'assisted') {
-                    guideText.textContent = '60-90cm離れて全身を枠内に合わせてください';
+                    guideText.textContent = '80-120cm離れて全身を枠内に合わせてください';
                 }
             }
             
