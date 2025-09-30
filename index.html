@@ -997,12 +997,12 @@
                             <button class="btn mode-btn" onclick="selectMode('selfie')">
                                 <div class="mode-icon">🤳</div>
                                 <div>セルフ撮影</div>
-                                <small>インカメラ・標準<br>推奨: 100cm</small>
+                                <small>インカメラ・標準<br>推奨: 80-120cm</small>
                             </button>
                             <button class="btn mode-btn" onclick="selectMode('assisted')">
                                 <div class="mode-icon">📸</div>
                                 <div>他者撮影</div>
-                                <small>アウトカメラ・広角<br>推奨: 70cm</small>
+                                <small>アウトカメラ・広角<br>推奨: 60-90cm</small>
                             </button>
                         </div>
                     </div>
@@ -1105,9 +1105,9 @@
             // モード別の距離情報をプレビュー表示
             const startBtn = document.getElementById('start-camera-btn');
             if (mode === 'selfie') {
-                startBtn.textContent = 'カメラを開始（推奨: 100cm離れる）';
+                startBtn.textContent = 'カメラを開始（推奨: 80-120cm離れる）';
             } else {
-                startBtn.textContent = 'カメラを開始（推奨: 70cm離れる）';
+                startBtn.textContent = 'カメラを開始（推奨: 60-90cm離れる）';
             }
         }
         
@@ -1166,15 +1166,13 @@
         async function initCameraStream() {
             const video = document.getElementById('camera-video');
             
-            // 80cmカメラ高での実用的な撮影に最適化された制約
+            // 80cmカメラ高モバイル縦向き撮影に最適化
             const constraints = {
                 video: {
-                    width: { ideal: 640, max: 1080 },
-                    height: { ideal: 480, max: 720 },
+                    width: { ideal: 720, max: 1080 },
+                    height: { ideal: 1280, max: 1920 },
                     facingMode: selectedMode === 'selfie' ? 'user' : 'environment',
-                    frameRate: { ideal: 30 },
-                    // 近距離撮影に適したフォーカス設定
-                    focusMode: 'continuous'
+                    frameRate: { ideal: 30 }
                 },
                 audio: false
             };
@@ -1218,8 +1216,8 @@
                     smoothLandmarks: true,
                     enableSegmentation: false,
                     smoothSegmentation: false,
-                    minDetectionConfidence: 0.6, // 80cm高カメラでの実用的な検出閾値
-                    minTrackingConfidence: 0.4    // 近距離安定追跡
+                    minDetectionConfidence: 0.4, // 実用的な検出閾値
+                    minTrackingConfidence: 0.3    // 近距離安定追跡
                 });
                 
                 // 姿勢検出コールバック
@@ -1336,11 +1334,11 @@
             let score = 100;
             
             // 80cmカメラ高での可視性評価
-            const visibleCount = landmarks.filter(lm => lm.visibility > 0.6).length;
+            const visibleCount = landmarks.filter(lm => lm.visibility > 0.4).length;
             const visibilityRatio = visibleCount / landmarks.length;
             
-            if (visibilityRatio < 0.6) {
-                score *= visibilityRatio * 1.3; // 80cm高補正
+            if (visibilityRatio < 0.5) {
+                score *= visibilityRatio * 1.5; // 実用的補正
             }
             
             // 80cmカメラ高での姿勢安定性（水平基準緩和）
@@ -1385,10 +1383,10 @@
             
             // 80cmカメラ高では膝まで見えれば実用的
             const visibleKeyPoints = keyPoints.filter(point => 
-                point && point.visibility > 0.6  // 安定した検出閾値
+                point && point.visibility > 0.4  // より実用的な検出閾値
             ).length;
             
-            return visibleKeyPoints >= 5; // 7点中5点以上（膝基準で実用的）
+            return visibleKeyPoints >= 4; // 7点中4点以上（実用的基準）
         }
         
         function updatePoseStatus(status, type) {
@@ -1426,31 +1424,31 @@
             const bodyOutline = document.querySelector('.body-outline');
             
             if (selectedMode === 'selfie') {
-                // インカメラ: 80cmカメラ高 + 標準画角 = 約100cm距離で全身撮影可能
-                distanceGuidance.innerHTML = '📏 推奨距離: 約100cm（カメラ高80cm基準） | 🎯 全身が青い枠内に入るよう調整してください';
-                cameraTips.innerHTML = '💡 セルフィーのコツ: 1m程度離れる・タイマー3秒推奨・明るい場所で・壁や柱を背景に';
+                // インカメラ: 実用的な範囲での撮影
+                distanceGuidance.innerHTML = '📏 推奨距離: 80-120cm（調整しながらお試しください） | 🎯 全身が青い枠内に入るよう調整してください';
+                cameraTips.innerHTML = '💡 セルフィーのコツ: 1m前後で調整・タイマー3秒推奨・明るい場所で・壁や柱を背景に';
                 
-                // インカメラ用の枠サイズ（100cm距離想定）
-                bodyOutline.style.width = 'clamp(45px, 12vw, 60px)';
-                bodyOutline.style.height = 'clamp(120px, 28vh, 160px)';
+                // インカメラ用の枠サイズ（調整可能範囲想定）
+                bodyOutline.style.width = 'clamp(80px, 20vw, 120px)';
+                bodyOutline.style.height = 'clamp(200px, 45vh, 300px)';
                 
             } else if (selectedMode === 'assisted') {
-                // アウトカメラ: 80cmカメラ高 + 広角画角 = 約70cm距離で全身撮影可能
-                distanceGuidance.innerHTML = '📏 推奨距離: 約70cm（カメラ高80cm基準） | 🎯 全身が青い枠内に入るよう調整してください';
-                cameraTips.innerHTML = '💡 撮影のコツ: 70cm程度離れる・撮影者は少ししゃがむ・広角活用・明るい場所で';
+                // アウトカメラ: 実用的な範囲での撮影
+                distanceGuidance.innerHTML = '📏 推奨距離: 60-90cm（調整しながらお試しください） | 🎯 全身が青い枠内に入るよう調整してください';
+                cameraTips.innerHTML = '💡 撮影のコツ: 60-90cm程度で調整・明るい場所で・広角レンズ活用';
                 
-                // アウトカメラ用の枠サイズ（70cm距離想定）
-                bodyOutline.style.width = 'clamp(35px, 10vw, 50px)';
-                bodyOutline.style.height = 'clamp(100px, 25vh, 140px)';
+                // アウトカメラ用の枠サイズ（調整可能範囲想定）
+                bodyOutline.style.width = 'clamp(70px, 18vw, 100px)';
+                bodyOutline.style.height = 'clamp(180px, 40vh, 260px)';
             }
             
             // ガイドテキストも更新
             const guideText = document.getElementById('guide-text-dynamic');
             if (guideText) {
                 if (selectedMode === 'selfie') {
-                    guideText.textContent = '約100cm離れて全身を枠内に合わせてください';
+                    guideText.textContent = '80-120cm離れて全身を枠内に合わせてください';
                 } else if (selectedMode === 'assisted') {
-                    guideText.textContent = '約70cm離れて全身を枠内に合わせてください';
+                    guideText.textContent = '60-90cm離れて全身を枠内に合わせてください';
                 }
             }
             
@@ -1515,8 +1513,8 @@
             }
             
             // 姿勢スコアが低い場合の警告（80cmカメラ高対応）
-            if (poseScore < 40) { // より実用的な閾値に設定
-                const distanceHint = selectedMode === 'selfie' ? '約100cm離れて' : '約70cm離れて';
+            if (poseScore < 30) { // 実用的な閾値に設定
+                const distanceHint = selectedMode === 'selfie' ? '80-120cm程度離れて' : '60-90cm程度離れて';
                 const proceed = confirm(`姿勢スコア: ${poseScore}%\n\nスコアが低めですが、このまま撮影しますか？\n\n💡 ヒント: ${distanceHint}全身が見えるように調整してください`);
                 if (!proceed) {
                     return;
